@@ -15,7 +15,7 @@ Ball::Ball(b2World& world)
     body = world.CreateBody(&bodyDef);
 
     b2CircleShape circleShape;
-    circleShape.m_radius = 15.f / SCALE;         // radius in meters
+    circleShape.m_radius = 30.f / SCALE;         // radius in meters // physics
 
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
@@ -29,9 +29,9 @@ Ball::Ball(b2World& world)
     // Create Visual Shape
     // ---------------------------
 
-    shape.setRadius(15.f);
-    shape.setOrigin(15.f, 15.f);
-    shape.setFillColor(sf::Color::White);
+    shape.setRadius(30.f);                 // visual
+    shape.setOrigin(30.f, 30.f);
+    shape.setFillColor(sf::Color::Black);
 }
 
 void Ball::update()
@@ -50,4 +50,21 @@ void Ball::update()
 void Ball::draw(sf::RenderWindow& window)
 {
     window.draw(shape);
+}
+
+void Ball::jump()
+{
+    b2Vec2 velocity = body->GetLinearVelocity();
+
+    // Only allow jump if nearly not moving vertically
+    if (abs(velocity.y) < 0.01f)
+    {
+        float impulseStrength = -10.0f;  // negative = upward
+
+        body->ApplyLinearImpulse(
+            b2Vec2(0.0f, impulseStrength),
+            body->GetWorldCenter(),
+            true
+        );
+    }
 }

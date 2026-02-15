@@ -16,4 +16,5 @@ public:
 
     void update();                // Sync visual with physics
     void draw(sf::RenderWindow& window);
+	void jump();                // Apply an impulse to make the ball jump
 };
