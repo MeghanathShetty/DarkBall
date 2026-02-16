@@ -21,7 +21,7 @@ Ball::Ball(b2World& world)
     fixtureDef.shape = &circleShape;
     fixtureDef.density = 1.0f;                   // affects mass
     fixtureDef.friction = 0.3f;                  // sliding resistance
-    fixtureDef.restitution = 0.2f;               // bounce
+    fixtureDef.restitution = 0.1f;               // bounce
 
     body->CreateFixture(&fixtureDef);
 
@@ -59,7 +59,7 @@ void Ball::jump()
     // Only allow jump if nearly not moving vertically
     if (abs(velocity.y) < 0.01f)
     {
-        float impulseStrength = -10.0f;  // negative = upward
+        float impulseStrength = -5.0f;  // negative = upward
 
         body->ApplyLinearImpulse(
             b2Vec2(0.0f, impulseStrength),
