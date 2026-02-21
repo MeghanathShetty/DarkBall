@@ -6,8 +6,8 @@
 class Ball
 {
 private:
-    b2Body* body;                 // Physics body (Box2D)
-	b2Fixture* fixture;           // Physics fixture for changing properties (Box2D)
+    b2Body* body; // The Box2D body that handles the ball’s movement and physics behavior.
+    b2Fixture* fixture; // The fixture attached to the body that defines mass, friction, and bounce.
     sf::CircleShape shape;        // Visual shape (SFML)
     sf::Color color;
     float radius;

@@ -11,12 +11,9 @@ Ball::Ball(b2World& world)
     spikeProgress = 0.0f;
     spikeSpeed = 0.7f;   // animation for spikes
 
-    // ---------------------------
     // Create Physics Body
-    // ---------------------------
-
     b2BodyDef bodyDef;
-    bodyDef.type = b2_dynamicBody;               // Dynamic = affected by gravity
+    bodyDef.type = b2_dynamicBody; // Dynamic = affected by gravity
     bodyDef.position.Set(400.f / SCALE, 100.f / SCALE);
 
     body = world.CreateBody(&bodyDef);
@@ -157,13 +154,10 @@ void Ball::drawSpikes(sf::RenderWindow& window)
 {
     int spikeCount = 6;
 
-    // spike geometry relative to ball center (0,0). We position the convex
-    // shape at the ball center, then rotate it so the tip points outward.
     float maxSpikeLength = radius * 0.9f;
     float spikeLength = maxSpikeLength * spikeProgress;
     // base sits on circle perimeter
     float baseRadius = radius - 1; // -1 to prevent gap
-    // ensure tip is outside the circle (extra pixel to avoid overlap when spikeLength is small)
     float tipRadius = radius + spikeLength + 1.0f;
     float baseHalf = spikeLength * 0.275f; // half-width of the spike base
 
@@ -174,9 +168,7 @@ void Ball::drawSpikes(sf::RenderWindow& window)
         sf::ConvexShape spike;
         spike.setPointCount(3);
 
-        // Points defined relative to the ball center (origin at ball center).
-        // Tip: straight up along negative Y, base left and right on circle rim.
-        spike.setPoint(0, sf::Vector2f(0.f, -tipRadius)); // tip (outside circle)
+        spike.setPoint(0, sf::Vector2f(0.f, -tipRadius));                  // tip (outside circle)
         spike.setPoint(1, sf::Vector2f(-baseHalf, -baseRadius));           // base left
         spike.setPoint(2, sf::Vector2f(baseHalf, -baseRadius));            // base right
 
