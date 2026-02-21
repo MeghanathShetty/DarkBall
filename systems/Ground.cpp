@@ -8,10 +8,7 @@ Ground::Ground(b2World& world,
 {
     SCALE = 30.f;
 
-    // --------------------
     // Physics Body (Static)
-    // --------------------
-
     b2BodyDef bodyDef;
     bodyDef.position.Set(posX / SCALE, posY / SCALE);
 
@@ -29,10 +26,7 @@ Ground::Ground(b2World& world,
 
     body->CreateFixture(&fixtureDef);
 
-    // --------------------
     // Visual Shape
-    // --------------------
-
     shape.setSize(sf::Vector2f(width, height));
     shape.setOrigin(width / 2.f, height / 2.f);
     shape.setPosition(posX, posY);

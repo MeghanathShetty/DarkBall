@@ -1,13 +1,14 @@
 #include "PhysicsWorld.h"
 
 PhysicsWorld::PhysicsWorld()
-    : world(b2Vec2(0.0f, 0.8f))   // gravity
+    : world(b2Vec2(0.0f, 9.8f))   // gravity (m/s^2)
 {
 }
 
-void PhysicsWorld::step()
+void PhysicsWorld::step(float dt)
 {
-    world.Step(1.f / 60.f, 8, 3);
+    // Forward variable timestep to Box2D. Caller should clamp dt to reasonable values.
+    world.Step(dt, 8, 3);
 }
 
 b2World& PhysicsWorld::getWorld()

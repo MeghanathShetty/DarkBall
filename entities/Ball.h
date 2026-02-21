@@ -11,6 +11,9 @@ private:
     sf::CircleShape shape;        // Visual shape (SFML)
     sf::Color color;
     float radius;
+    float currentMaxSpeed;
+    float regularModeMaxSpeed;
+    float spikeyModeMaxSpeed;
 
     float SCALE;                  // Pixels per meter
     bool spikeMode;
@@ -29,5 +32,6 @@ public:
     void toggleSpikeMode();
 	void drawSpikes(sf::RenderWindow& window);
     void spikeyMode(b2Fixture* fixDef);
-    void bouncyMode(b2Fixture* fixDef); // normal mode
+    void regularMode(b2Fixture* fixDef); // normal(bouncy) mode
+    sf::Vector2f getPosition() const;
 };

@@ -5,23 +5,38 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Dark Ball");
+	//sf::RenderWindow window(sf::VideoMode(800, 600), "Dark Ball"); // static window size
+    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
 
+    sf::RenderWindow window(
+        desktop,
+        "Dark Ball",
+        sf::Style::Fullscreen
+    );
     PhysicsWorld physics;
     Ball ball(physics.getWorld());
 
     Ground ground(physics.getWorld(), 400.f, 550.f, 800.f, 40.f);
+    // Use a fixed virtual view (same as original window size) so visuals and
+    // perceived movement speed remain consistent across different screen
+    // resolutions and fullscreen modes.
+    sf::View view(sf::FloatRect(0.f, 0.f, 800.f, 600.f));
+    window.setView(view);
+    // Fixed timestep accumulator so physics runs in real time regardless of FPS.
+    sf::Clock clock;
+    const float timeStep = 1.f / 60.f;
+    float accumulator = 0.f;
 
     while (window.isOpen())
     {
         sf::Event event;
         while (window.pollEvent(event))
         {
-			// handle window close event
+            // handle window close event
             if (event.type == sf::Event::Closed)
                 window.close();
 
-			// handle ball jump on space key press
+            // handle ball jump on space key press
             if (event.type == sf::Event::KeyPressed)
             {
                 if (event.key.code == sf::Keyboard::Space)
@@ -30,7 +45,7 @@ int main()
                 }
             }
 
-			// enter/exit ball spike mode on right mouse button press
+            // enter/exit ball spike mode on right mouse button press
             if (event.type == sf::Event::MouseButtonPressed)
             {
                 if (event.mouseButton.button == sf::Mouse::Right)
@@ -51,13 +66,32 @@ int main()
             direction += 1.0f;
         }
 
-        ball.move(direction);
+        // We'll apply player input during each physics step below so movement is
+        // processed at the fixed physics rate (independent of render FPS).
 
-        physics.step();
-        ball.update();
+        // accumulate real time and step physics in fixed increments
+        float frameTime = clock.restart().asSeconds();
+        // clamp frameTime to avoid spiral of death after a pause
+        if (frameTime > 0.25f)
+            frameTime = 0.25f;
+
+        accumulator += frameTime;
+        while (accumulator >= timeStep)
+        {
+            ball.move(direction);
+            physics.step(timeStep);
+            ball.update();
+            accumulator -= timeStep;
+        }
+
+        // update camera to follow ball
+        sf::Vector2f center = view.getCenter();
+        center.x = ball.getPosition().x;
+        view.setCenter(center);
+        window.setView(view);
 
         window.clear(sf::Color(245, 245, 245));
-		ground.draw(window);
+        ground.draw(window);
         ball.draw(window);
         window.display();
     }

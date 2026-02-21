@@ -4,8 +4,11 @@
 Ball::Ball(b2World& world)
 {
     SCALE = 30.f;   // 30 pixels = 1 meter
-    radius = 35.f;
+    radius = 18.f; // smaller visual ball
     color = sf::Color::Black;
+    // max speeds in meters/sec (Box2D units). Increased so movement feels normal.
+    regularModeMaxSpeed = 4.0f;
+    spikeyModeMaxSpeed = 2.0f;
 
     // Animations
     spikeProgress = 0.0f;
@@ -29,10 +32,10 @@ Ball::Ball(b2World& world)
     fixtureDef.shape = &circleShape;
     fixture = body->CreateFixture(&fixtureDef);
     spikeMode = false; // initially start in bouncy mode
-    bouncyMode(fixture); 
+    regularMode(fixture);
 }
 
-void Ball::bouncyMode(b2Fixture* fix)
+void Ball::regularMode(b2Fixture* fix)
 {
     fix->SetDensity(0.4f); // heaviniess (mass)
 	fix->SetFriction(0.2f); // grip on surfaces
@@ -40,7 +43,7 @@ void Ball::bouncyMode(b2Fixture* fix)
 
 	body->SetLinearDamping(0.12f); // air resistance
     body->SetAngularDamping(0.1f); // rotational resistance to prevent excessive spinning
-	body->SetGravityScale(0.65f); // reduce gravity for a floatier feel
+    body->SetGravityScale(1.0f); // use normal gravity in regular mode
     body->ResetMassData();
 }
 
@@ -102,9 +105,9 @@ void Ball::jump()
 
     // Allow jump when roughly on/near the ground (not too high vertical speed)
     // Using a larger threshold is simpler than contact detection for this demo.
-    if (std::abs(velocity.y) < 0.2f)
+    if (std::abs(velocity.y) < 0.6f)
     {
-        float impulseStrength = -4.8f;  // negative = upward (tuned for feel)
+        float impulseStrength = -9.0f;  // stronger jump to match new scale
 
         body->ApplyLinearImpulse(
             b2Vec2(0.0f, impulseStrength),
@@ -116,12 +119,10 @@ void Ball::jump()
 
 void Ball::move(float direction)
 {
-    // Make horizontal movement responsive by applying an impulse toward a
-    // target horizontal speed instead of a slow continuous force.
-    const float maxSpeed = 0.8f; // meters per second (box2d units)
+    currentMaxSpeed = spikeMode ? spikeyModeMaxSpeed : regularModeMaxSpeed;
 
     b2Vec2 vel = body->GetLinearVelocity();
-    float desiredVelX = direction * maxSpeed;
+    float desiredVelX = direction * currentMaxSpeed;
     float velChange = desiredVelX - vel.x;
 
     // Calculate impulse = mass * deltaV
@@ -133,9 +134,9 @@ void Ball::move(float direction)
 
     // Clamp absolute horizontal speed to maxSpeed to avoid runaway velocities
     vel = body->GetLinearVelocity();
-    if (std::abs(vel.x) > maxSpeed)
+    if (std::abs(vel.x) > currentMaxSpeed)
     {
-        vel.x = (vel.x > 0.0f) ? maxSpeed : -maxSpeed;
+        vel.x = (vel.x > 0.0f) ? currentMaxSpeed : -currentMaxSpeed;
         body->SetLinearVelocity(vel);
     }
 }
@@ -147,7 +148,7 @@ void Ball::toggleSpikeMode()
     if (spikeMode)
         spikeyMode(fixture);
     else
-        bouncyMode(fixture);
+		regularMode(fixture); // bouncy mode
 }
 
 void Ball::drawSpikes(sf::RenderWindow& window)
@@ -180,4 +181,9 @@ void Ball::drawSpikes(sf::RenderWindow& window)
 
         window.draw(spike);
     }
+}
+
+sf::Vector2f Ball::getPosition() const
+{
+    return shape.getPosition();
 }

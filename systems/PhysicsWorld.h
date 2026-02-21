@@ -9,7 +9,7 @@ private:
 public:
     PhysicsWorld();
 
-    void step();
+    void step(float dt);
 
     b2World& getWorld();
 };
