@@ -7,6 +7,7 @@ class Ball
 {
 private:
     b2Body* body;                 // Physics body (Box2D)
+	b2Fixture* fixture;           // Physics fixture for changing properties (Box2D)
     sf::CircleShape shape;        // Visual shape (SFML)
     sf::Color color;
     float radius;
@@ -27,4 +28,6 @@ public:
     void move(float direction);
     void toggleSpikeMode();
 	void drawSpikes(sf::RenderWindow& window);
+    void spikeyMode(b2Fixture* fixDef);
+    void bouncyMode(b2Fixture* fixDef); // normal mode
 };

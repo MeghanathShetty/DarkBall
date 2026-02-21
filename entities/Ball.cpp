@@ -6,7 +6,6 @@ Ball::Ball(b2World& world)
     SCALE = 30.f;   // 30 pixels = 1 meter
     radius = 35.f;
     color = sf::Color::Black;
-    spikeMode = false;
 
     // Animations
     spikeProgress = 0.0f;
@@ -22,34 +21,42 @@ Ball::Ball(b2World& world)
 
     body = world.CreateBody(&bodyDef);
 
-    // Improve movement/fall behavior:
-    // - Apply a small amount of linear damping (air resistance) so the ball
-    //   doesn't keep sliding forever but remains responsive to input.
-    // - Slightly reduce gravity for this body so falls feel less abrupt.
-    body->SetLinearDamping(0.12f);
-    body->SetAngularDamping(0.5f);
-    body->SetGravityScale(0.65f);
-
+    // Create Visual Shape
     b2CircleShape circleShape;
     circleShape.m_radius = radius / SCALE;
     shape.setRadius(radius);
     shape.setOrigin(radius, radius);
+    shape.setFillColor(color);
 
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
-    fixtureDef.density = 0.4f;                   // affects mass
-    fixtureDef.friction = 0.2f;                  // sliding resistance
-    fixtureDef.restitution = 0.4f;               // bounce
+    fixture = body->CreateFixture(&fixtureDef);
+    spikeMode = false; // initially start in bouncy mode
+    bouncyMode(fixture); 
+}
 
-    body->CreateFixture(&fixtureDef);
+void Ball::bouncyMode(b2Fixture* fix)
+{
+    fix->SetDensity(0.4f); // heaviniess (mass)
+	fix->SetFriction(0.2f); // grip on surfaces
+	fix->SetRestitution(0.4f); // bounciness
 
-    // ---------------------------
-    // Create Visual Shape
-    // ---------------------------
+	body->SetLinearDamping(0.12f); // air resistance
+    body->SetAngularDamping(0.1f); // rotational resistance to prevent excessive spinning
+	body->SetGravityScale(0.65f); // reduce gravity for a floatier feel
+    body->ResetMassData();
+}
 
-    shape.setRadius(35.f);                 // visual
-    shape.setOrigin(35.f, 35.f);
-    shape.setFillColor(color);
+void Ball::spikeyMode(b2Fixture * fix)
+{
+	fix->SetDensity(2.0f); // heaviniess (mass)
+	fix->SetFriction(1.5f); // grip on surfaces (high friction to prevent sliding when spiked)
+	fix->SetRestitution(0.03f); // low bounciness to feel more "stuck" when spiked
+
+    body->SetLinearDamping(0); // air resistance
+    body->SetAngularDamping(0.5f); // rotational resistance to prevent excessive spinning
+    body->SetGravityScale(1.5f); // increase gravity for a heavier feel
+    body->ResetMassData();
 }
 
 void Ball::update()
@@ -139,6 +146,11 @@ void Ball::move(float direction)
 void Ball::toggleSpikeMode()
 {
     spikeMode = !spikeMode;
+
+    if (spikeMode)
+        spikeyMode(fixture);
+    else
+        bouncyMode(fixture);
 }
 
 void Ball::drawSpikes(sf::RenderWindow& window)
