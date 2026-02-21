@@ -1,4 +1,5 @@
 #include "Ball.h"
+#include <cmath>
 
 Ball::Ball(b2World& world)
 {
@@ -6,6 +7,10 @@ Ball::Ball(b2World& world)
     radius = 35.f;
     color = sf::Color::Black;
     spikeMode = false;
+
+    // Animations
+    spikeProgress = 0.0f;
+    spikeSpeed = 0.7f;   // animation for spikes
 
     // ---------------------------
     // Create Physics Body
@@ -58,15 +63,32 @@ void Ball::update()
 
     // Convert radians → degrees
     shape.setRotation(angle * 180.f / b2_pi);
+
+	// Update spike animation progress.
+    float deltaTime = 1.f / 60.f;  // since you use fixed timestep
+    if (spikeMode)
+    {
+        spikeProgress += spikeSpeed * deltaTime;
+        if (spikeProgress > 1.f)
+            spikeProgress = 1.f;
+    }
+    else
+    {
+        spikeProgress -= spikeSpeed * deltaTime;
+        if (spikeProgress < 0.f)
+            spikeProgress = 0.f;
+    }
 }
 
 void Ball::draw(sf::RenderWindow& window)
 {
     window.draw(shape);
 
-    if (spikeMode)
+    // Draw spikes while they are visible (growing or retracting).
+    // This ensures the retract animation is rendered even after spikeMode is toggled off.
+    if (spikeProgress > 0.001f)
     {
-		drawSpikes(window);
+        drawSpikes(window);
     }
 }
 
@@ -125,8 +147,12 @@ void Ball::drawSpikes(sf::RenderWindow& window)
 
     // spike geometry relative to ball center (0,0). We position the convex
     // shape at the ball center, then rotate it so the tip points outward.
-    float spikeLength = radius * 0.9f;   // distance from circle edge to spike tip
-    float baseRadius = radius - 1;   // base sits on circle perimeter (1 pixel inset to avoid visual gaps)
+    float maxSpikeLength = radius * 0.9f;
+    float spikeLength = maxSpikeLength * spikeProgress;
+    // base sits on circle perimeter
+    float baseRadius = radius - 1; // -1 to prevent gap
+    // ensure tip is outside the circle (extra pixel to avoid overlap when spikeLength is small)
+    float tipRadius = radius + spikeLength + 1.0f;
     float baseHalf = spikeLength * 0.275f; // half-width of the spike base
 
     for (int i = 0; i < spikeCount; i++)
@@ -138,7 +164,7 @@ void Ball::drawSpikes(sf::RenderWindow& window)
 
         // Points defined relative to the ball center (origin at ball center).
         // Tip: straight up along negative Y, base left and right on circle rim.
-        spike.setPoint(0, sf::Vector2f(0.f, -(baseRadius + spikeLength))); // tip
+        spike.setPoint(0, sf::Vector2f(0.f, -tipRadius)); // tip (outside circle)
         spike.setPoint(1, sf::Vector2f(-baseHalf, -baseRadius));           // base left
         spike.setPoint(2, sf::Vector2f(baseHalf, -baseRadius));            // base right
 

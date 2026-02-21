@@ -14,6 +14,10 @@ private:
     float SCALE;                  // Pixels per meter
     bool spikeMode;
 
+    // Animations
+    float spikeProgress;     // 0.0 -> 1.0
+    float spikeSpeed;        // how fast spikes grow
+
 public:
     Ball(b2World& world);
 
