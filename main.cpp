@@ -29,7 +29,29 @@ int main()
                     ball.jump();
                 }
             }
+
+			// enter/exit ball spike mode on right mouse button press
+            if (event.type == sf::Event::MouseButtonPressed)
+            {
+                if (event.mouseButton.button == sf::Mouse::Right)
+                {
+                    ball.toggleSpikeMode();
+                }
+            }
         }
+
+        float direction = 0.0f;
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        {
+            direction -= 1.0f;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+        {
+            direction += 1.0f;
+        }
+
+        ball.move(direction);
 
         physics.step();
         ball.update();

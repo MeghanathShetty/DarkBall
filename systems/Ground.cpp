@@ -21,7 +21,13 @@ Ground::Ground(b2World& world,
     boxShape.SetAsBox((width / 2.f) / SCALE,
         (height / 2.f) / SCALE);
 
-    body->CreateFixture(&boxShape, 0.0f);  // 0 density = static
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &boxShape;
+    fixtureDef.density = 0.0f;
+    fixtureDef.friction = 0.6f;
+    fixtureDef.restitution = 0.2f;
+
+    body->CreateFixture(&fixtureDef);
 
     // --------------------
     // Visual Shape

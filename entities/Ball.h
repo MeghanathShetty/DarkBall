@@ -8,8 +8,11 @@ class Ball
 private:
     b2Body* body;                 // Physics body (Box2D)
     sf::CircleShape shape;        // Visual shape (SFML)
+    sf::Color color;
+    float radius;
 
     float SCALE;                  // Pixels per meter
+    bool spikeMode;
 
 public:
     Ball(b2World& world);
@@ -17,4 +20,7 @@ public:
     void update();                // Sync visual with physics
     void draw(sf::RenderWindow& window);
 	void jump();                // Apply an impulse to make the ball jump
+    void move(float direction);
+    void toggleSpikeMode();
+	void drawSpikes(sf::RenderWindow& window);
 };

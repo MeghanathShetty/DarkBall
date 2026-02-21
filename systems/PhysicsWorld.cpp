@@ -1,7 +1,7 @@
 #include "PhysicsWorld.h"
 
 PhysicsWorld::PhysicsWorld()
-    : world(b2Vec2(0.0f, 0.275f))   // gravity
+    : world(b2Vec2(0.0f, 0.8f))   // gravity
 {
 }
 
