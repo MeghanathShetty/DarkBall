@@ -14,8 +14,6 @@ private:
     float currentMaxSpeed;
     float regularModeMaxSpeed;
     float spikeyModeMaxSpeed;
-
-    float SCALE;                  // Pixels per meter
     bool spikeMode;
 
     // Animations

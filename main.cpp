@@ -16,7 +16,7 @@ int main()
     PhysicsWorld physics;
     Ball ball(physics.getWorld());
 
-    Ground ground(physics.getWorld(), 4000.f, 550.f, 8000.f, 40.f);
+    Ground ground(physics.getWorld(), 400.f, 550.f);
     sf::View view;
     view.setSize(window.getSize().x, window.getSize().y);
     view.setCenter(window.getSize().x / 2.f, window.getSize().y / 2.f);

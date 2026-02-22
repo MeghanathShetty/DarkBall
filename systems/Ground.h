@@ -2,21 +2,18 @@
 
 #include <SFML/Graphics.hpp>
 #include <box2d/box2d.h>
+#include <vector>
 
 class Ground
 {
 private:
-    b2Body* body;                 // Physics body
-    sf::RectangleShape shape;     // Visual shape
+    b2Body* body;
 
-    float SCALE;
+    std::vector<b2Vec2> physicsVertices;
+    sf::VertexArray visual;
 
 public:
-    Ground(b2World& world,
-        float posX,
-        float posY,
-        float width,
-        float height);
+    Ground(b2World& world, float startX, float startY);
 
     void draw(sf::RenderWindow& window);
 };

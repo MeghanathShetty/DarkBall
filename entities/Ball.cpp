@@ -1,9 +1,9 @@
 #include "Ball.h"
 #include <cmath>
+#include "../core/Constants.h"
 
 Ball::Ball(b2World& world)
 {
-    SCALE = 30.f;   // 30 pixels = 1 meter
     radius = 30.f;
     color = sf::Color::Black;
     // max speeds in meters/sec (Box2D units). Increased so movement feels normal.
@@ -12,18 +12,18 @@ Ball::Ball(b2World& world)
 
     // Animations
     spikeProgress = 0.0f;
-    spikeSpeed = 0.7f;   // animation for spikes
+    spikeSpeed = 3.f;
 
     // Create Physics Body
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody; // Dynamic = affected by gravity
-    bodyDef.position.Set(400.f / SCALE, 100.f / SCALE);
+    bodyDef.position.Set(400.f / Constants::SCALE, 100.f / Constants::SCALE);
 
     body = world.CreateBody(&bodyDef);
 
     // Create Visual Shape
     b2CircleShape circleShape;
-    circleShape.m_radius = radius / SCALE;
+    circleShape.m_radius = radius / Constants::SCALE;
     shape.setRadius(radius);
     shape.setOrigin(radius, radius);
     shape.setFillColor(color);
@@ -55,7 +55,7 @@ void Ball::spikeyMode(b2Fixture* fix)
 
     body->SetLinearDamping(0.f);    // air drag (higher = slower)
     body->SetAngularDamping(1.0f);   // spin drag (higher = less spin)
-    body->SetGravityScale(2.5f);     // gravity (higher = stronger)
+    body->SetGravityScale(10.f);     // gravity (higher = stronger)
     body->ResetMassData();
 }
 
@@ -66,7 +66,7 @@ void Ball::update()
     float angle = body->GetAngle();
 
     // Convert meters → pixels
-    shape.setPosition(position.x * SCALE, position.y * SCALE);
+    shape.setPosition(position.x * Constants::SCALE, position.y * Constants::SCALE);
 
     // Convert radians → degrees
     shape.setRotation(angle * 180.f / b2_pi);
