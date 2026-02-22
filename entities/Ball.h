@@ -8,8 +8,13 @@ class Ball
 private:
     b2Body* body; // The Box2D body that handles the ball’s movement and physics behavior.
     b2Fixture* fixture; // The fixture attached to the body that defines mass, friction, and bounce.
+    
     sf::CircleShape shape;        // Visual shape (SFML)
+    sf::Texture texture;
+    sf::Sprite sprite;
     sf::Color color;
+    bool hasTexture = false;
+
     float radius;
     float currentMaxSpeed;
     float regularModeMaxSpeed;

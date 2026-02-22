@@ -11,6 +11,11 @@ add_executable(DarkBall
     systems/PhysicsWorld.h
  "systems/Ground.h" "systems/Ground.cpp" "core/Constants.h" "systems/ContactListener.h" "systems/ContactListener.cpp")
 
+file(GLOB GAME_ASSETS "assets/*")
+
+file(COPY ${GAME_ASSETS}
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/assets)
+
 source_group("entities" FILES
     entities/Ball.cpp
     entities/Ball.h

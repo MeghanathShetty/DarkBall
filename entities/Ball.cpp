@@ -21,12 +21,35 @@ Ball::Ball(b2World& world)
 
     body = world.CreateBody(&bodyDef);
 
-    // Create Visual Shape
+    // Create Visual Shape (this is physics not graphics)
     b2CircleShape circleShape;
     circleShape.m_radius = radius / Constants::SCALE;
     shape.setRadius(radius);
     shape.setOrigin(radius, radius);
     shape.setFillColor(color);
+
+    // Load texture from the canonical project-relative path only.
+    if (texture.loadFromFile("assets/grass-ball.png"))
+    {
+        texture.setSmooth(true);
+        sprite.setTexture(texture);
+
+        sf::Vector2u texSize = texture.getSize();
+        if (texSize.x > 0 && texSize.y > 0)
+        {
+            sprite.setOrigin(texSize.x / 2.f, texSize.y / 2.f);
+
+            // Make the sprite larger than the circle so it covers and extends
+            // beyond the ball. Adjust multiplier if you want more/less overlap.
+            const float coverMultiplier = 2.3f;
+            float desiredDiameter = radius * 2.f * coverMultiplier;
+            float maxTexDim = static_cast<float>(std::max(texSize.x, texSize.y));
+            float uniformScale = desiredDiameter / maxTexDim;
+            sprite.setScale(uniformScale, uniformScale);
+            sprite.setColor(sf::Color::White);
+            hasTexture = true;
+        }
+    }
 
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
@@ -43,7 +66,7 @@ void Ball::regularMode(b2Fixture* fix)
     fix->SetRestitution(0.5f);  // bounce (higher = more bounce)
 
     body->SetLinearDamping(0.1f);    // air drag (higher = slower)
-    body->SetAngularDamping(0.1f);   // spin drag (higher = less spin)
+    body->SetAngularDamping(0.75f);   // spin drag (higher = less spin)
     body->SetGravityScale(1.0f);     // gravity (higher = stronger)
     body->ResetMassData();
 }
@@ -62,15 +85,14 @@ void Ball::spikeyMode(b2Fixture* fix)
 
 void Ball::update()
 {
-    // Get position from physics world
     b2Vec2 position = body->GetPosition();
     float angle = body->GetAngle();
 
-    // Convert meters → pixels
     shape.setPosition(position.x * Constants::SCALE, position.y * Constants::SCALE);
-
-    // Convert radians → degrees
     shape.setRotation(angle * 180.f / b2_pi);
+
+    sprite.setPosition(shape.getPosition());
+    sprite.setRotation(shape.getRotation());
 
 	// Update spike animation progress.
     float deltaTime = 1.f / 60.f;  // since you use fixed timestep
@@ -90,7 +112,12 @@ void Ball::update()
 
 void Ball::draw(sf::RenderWindow& window)
 {
+    // Always draw the base black circle so the ball remains black where the
+    // texture is transparent or missing. Draw the sprite on top only if it
+    // actually loaded.
     window.draw(shape);
+    if (hasTexture)
+        window.draw(sprite);
 
     // Draw spikes while they are visible (growing or retracting).
     // This ensures the retract animation is rendered even after spikeMode is toggled off.
@@ -143,7 +170,6 @@ void Ball::move(float direction)
 void Ball::toggleSpikeMode()
 {
     spikeMode = !spikeMode;
-
     if (spikeMode)
         spikeyMode(fixture);
     else
