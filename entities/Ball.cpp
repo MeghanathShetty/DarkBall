@@ -53,7 +53,7 @@ void Ball::spikeyMode(b2Fixture* fix)
     fix->SetFriction(1.2f);     // grip (higher = more grip)
     fix->SetRestitution(0.05f); // bounce (higher = more bounce)
 
-    body->SetLinearDamping(0.0f);    // air drag (higher = slower)
+    body->SetLinearDamping(0.f);    // air drag (higher = slower)
     body->SetAngularDamping(1.0f);   // spin drag (higher = less spin)
     body->SetGravityScale(2.5f);     // gravity (higher = stronger)
     body->ResetMassData();
@@ -107,7 +107,7 @@ void Ball::jump()
     // Using a larger threshold is simpler than contact detection for this demo.
     if (std::abs(velocity.y) < 0.6f)
     {
-        float impulseStrength = -50.0f;  // negative to go up
+        float impulseStrength = -55.0f;  // negative to go up
 
         body->ApplyLinearImpulse(
             b2Vec2(0.0f, impulseStrength),
