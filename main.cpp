@@ -2,6 +2,7 @@
 #include "systems/PhysicsWorld.h"
 #include "entities/Ball.h"
 #include "systems/Ground.h"
+#include "systems/ContactListener.h"
 
 int main()
 {
@@ -14,6 +15,8 @@ int main()
         sf::Style::Fullscreen
     );
     PhysicsWorld physics;
+    ContactListener contactListener;
+    physics.getWorld().SetContactListener(&contactListener);
     Ball ball(physics.getWorld());
 
     Ground ground(physics.getWorld(), 400.f, 550.f);

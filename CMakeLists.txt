@@ -9,7 +9,7 @@ add_executable(DarkBall
     entities/Ball.h
     systems/PhysicsWorld.cpp
     systems/PhysicsWorld.h
- "systems/Ground.h" "systems/Ground.cpp" "core/Constants.h")
+ "systems/Ground.h" "systems/Ground.cpp" "core/Constants.h" "systems/ContactListener.h" "systems/ContactListener.cpp")
 
 source_group("entities" FILES
     entities/Ball.cpp

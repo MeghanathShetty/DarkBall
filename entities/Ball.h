@@ -20,6 +20,7 @@ private:
     float spikeProgress;     // 0.0 -> 1.0
     float spikeSpeed;        // how fast spikes grow
 
+    int groundContacts = 0;
 public:
     Ball(b2World& world);
 
@@ -32,4 +33,6 @@ public:
     void spikeyMode(b2Fixture* fixDef);
     void regularMode(b2Fixture* fixDef); // normal(bouncy) mode
     sf::Vector2f getPosition() const;
+    void setGrounded(bool value);
+    bool isGrounded() const;
 };

@@ -12,7 +12,7 @@ Ball::Ball(b2World& world)
 
     // Animations
     spikeProgress = 0.0f;
-    spikeSpeed = 3.f;
+    spikeSpeed = 3.5f;
 
     // Create Physics Body
     b2BodyDef bodyDef;
@@ -31,6 +31,7 @@ Ball::Ball(b2World& world)
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circleShape;
     fixture = body->CreateFixture(&fixtureDef);
+    fixture->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
     spikeMode = false; // initially start in bouncy mode
     regularMode(fixture);
 }
@@ -103,9 +104,7 @@ void Ball::jump()
 {
     b2Vec2 velocity = body->GetLinearVelocity();
 
-    // Allow jump when roughly on/near the ground (not too high vertical speed)
-    // Using a larger threshold is simpler than contact detection for this demo.
-    if (std::abs(velocity.y) < 0.6f)
+    if (isGrounded())
     {
         float impulseStrength = -55.0f;  // negative to go up
 
@@ -186,4 +185,20 @@ void Ball::drawSpikes(sf::RenderWindow& window)
 sf::Vector2f Ball::getPosition() const
 {
     return shape.getPosition();
+}
+
+void Ball::setGrounded(bool value)
+{
+    if (value)
+        groundContacts++;
+    else
+        groundContacts--;
+
+    if (groundContacts < 0)
+        groundContacts = 0;
+}
+
+bool Ball::isGrounded() const
+{
+    return groundContacts > 0;
 }
