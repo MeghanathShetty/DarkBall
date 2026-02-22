@@ -16,11 +16,10 @@ int main()
     PhysicsWorld physics;
     Ball ball(physics.getWorld());
 
-    Ground ground(physics.getWorld(), 400.f, 550.f, 800.f, 40.f);
-    // Use a fixed virtual view (same as original window size) so visuals and
-    // perceived movement speed remain consistent across different screen
-    // resolutions and fullscreen modes.
-    sf::View view(sf::FloatRect(0.f, 0.f, 800.f, 600.f));
+    Ground ground(physics.getWorld(), 4000.f, 550.f, 8000.f, 40.f);
+    sf::View view;
+    view.setSize(window.getSize().x, window.getSize().y);
+    view.setCenter(window.getSize().x / 2.f, window.getSize().y / 2.f);
     window.setView(view);
     // Fixed timestep accumulator so physics runs in real time regardless of FPS.
     sf::Clock clock;

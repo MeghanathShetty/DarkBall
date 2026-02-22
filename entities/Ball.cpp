@@ -4,11 +4,11 @@
 Ball::Ball(b2World& world)
 {
     SCALE = 30.f;   // 30 pixels = 1 meter
-    radius = 18.f; // smaller visual ball
+    radius = 30.f;
     color = sf::Color::Black;
     // max speeds in meters/sec (Box2D units). Increased so movement feels normal.
-    regularModeMaxSpeed = 4.0f;
-    spikeyModeMaxSpeed = 2.0f;
+    regularModeMaxSpeed = 12.0f;
+    spikeyModeMaxSpeed = 6.0f;
 
     // Animations
     spikeProgress = 0.0f;
@@ -37,25 +37,25 @@ Ball::Ball(b2World& world)
 
 void Ball::regularMode(b2Fixture* fix)
 {
-    fix->SetDensity(0.4f); // heaviniess (mass)
-	fix->SetFriction(0.2f); // grip on surfaces
-	fix->SetRestitution(0.4f); // bounciness
+    fix->SetDensity(1.0f);      // mass (higher = heavier)
+    fix->SetFriction(0.6f);     // grip (higher = more grip)
+    fix->SetRestitution(0.5f);  // bounce (higher = more bounce)
 
-	body->SetLinearDamping(0.12f); // air resistance
-    body->SetAngularDamping(0.1f); // rotational resistance to prevent excessive spinning
-    body->SetGravityScale(1.0f); // use normal gravity in regular mode
+    body->SetLinearDamping(0.1f);    // air drag (higher = slower)
+    body->SetAngularDamping(0.1f);   // spin drag (higher = less spin)
+    body->SetGravityScale(1.0f);     // gravity (higher = stronger)
     body->ResetMassData();
 }
 
-void Ball::spikeyMode(b2Fixture * fix)
+void Ball::spikeyMode(b2Fixture* fix)
 {
-	fix->SetDensity(2.0f); // heaviniess (mass)
-	fix->SetFriction(1.5f); // grip on surfaces (high friction to prevent sliding when spiked)
-	fix->SetRestitution(0.03f); // low bounciness to feel more "stuck" when spiked
+    fix->SetDensity(5.0f);      // mass (higher = heavier)
+    fix->SetFriction(1.2f);     // grip (higher = more grip)
+    fix->SetRestitution(0.05f); // bounce (higher = more bounce)
 
-    body->SetLinearDamping(0); // air resistance
-    body->SetAngularDamping(0.5f); // rotational resistance to prevent excessive spinning
-    body->SetGravityScale(1.5f); // increase gravity for a heavier feel
+    body->SetLinearDamping(0.0f);    // air drag (higher = slower)
+    body->SetAngularDamping(1.0f);   // spin drag (higher = less spin)
+    body->SetGravityScale(2.5f);     // gravity (higher = stronger)
     body->ResetMassData();
 }
 
@@ -107,7 +107,7 @@ void Ball::jump()
     // Using a larger threshold is simpler than contact detection for this demo.
     if (std::abs(velocity.y) < 0.6f)
     {
-        float impulseStrength = -9.0f;  // stronger jump to match new scale
+        float impulseStrength = -50.0f;  // negative to go up
 
         body->ApplyLinearImpulse(
             b2Vec2(0.0f, impulseStrength),
