@@ -21,69 +21,7 @@ void Level::load(const std::string& filename, b2World& world)
 
     terrains.clear();
 
-    auto generateCatmullRom =
-        [](const std::vector<sf::Vector2f>& ctrl,
-            int samplesPerSeg)
-        {
-            std::vector<sf::Vector2f> out;
-
-            if (ctrl.size() < 2)
-                return out;
-
-            auto CR = [](const sf::Vector2f& p0,
-                const sf::Vector2f& p1,
-                const sf::Vector2f& p2,
-                const sf::Vector2f& p3,
-                float t)
-                {
-                    float t2 = t * t;
-                    float t3 = t2 * t;
-
-                    sf::Vector2f result;
-
-                    result.x = 0.5f * (
-                        (2.f * p1.x) +
-                        (-p0.x + p2.x) * t +
-                        (2.f * p0.x - 5.f * p1.x + 4.f * p2.x - p3.x) * t2 +
-                        (-p0.x + 3.f * p1.x - 3.f * p2.x + p3.x) * t3
-                        );
-
-                    result.y = 0.5f * (
-                        (2.f * p1.y) +
-                        (-p0.y + p2.y) * t +
-                        (2.f * p0.y - 5.f * p1.y + 4.f * p2.y - p3.y) * t2 +
-                        (-p0.y + 3.f * p1.y - 3.f * p2.y + p3.y) * t3
-                        );
-
-                    return result;
-                };
-
-            std::vector<sf::Vector2f> pts = ctrl;
-
-            pts.insert(pts.begin(), pts.front());
-            pts.push_back(pts.back());
-
-            for (size_t i = 0; i + 3 < pts.size(); ++i)
-            {
-                for (int s = 0; s < samplesPerSeg; ++s)
-                {
-                    float t = s / static_cast<float>(samplesPerSeg);
-                    out.push_back(CR(
-                        pts[i],
-                        pts[i + 1],
-                        pts[i + 2],
-                        pts[i + 3],
-                        t
-                    ));
-                }
-            }
-
-            out.push_back(ctrl.back());
-            return out;
-        };
-
-
-    // main logic
+	// Iterate through all layers in the Tiled map data
     for (const auto& layer : data["layers"])
     {
 		// ignre all layers that are not the "Collisions" object layer
@@ -131,19 +69,27 @@ void Level::load(const std::string& filename, b2World& world)
                     );
                 }
 
-                if (obj["type"] == "concave") // concave, so need conversion to convex
-                { 
-                    auto convexPieces = ConvertConcaveToConvexPieces(polyPoints); // Convert to convex polygons
-                    for (const auto& piece : convexPieces)
-                    {
-                        terrains.push_back(
-                            std::make_unique<Terrain>(world, piece)
-                        );
-                    }
+				// Smooth the polygon points using Catmull-Rom
+                const int samplesPerSegment = 5; // Keep small. 4–6 is enough.
+                std::vector<sf::Vector2f> smoothPoints;
+                if (polyPoints.size() >= 4)
+                {
+                    smoothPoints = GenerateCatmullRom(polyPoints, samplesPerSegment);
                 }
-				else { // else assume convex (so directly use the points to create a polygon)
+                else
+                {
+                    // Too small to smooth safely
+                    smoothPoints = polyPoints;
+                }
+
+                // Convert polygons into smaller chunks of triangles 
+				// Box2D only supports 3 to 8 vertices per polygon and also only convex shapes
+                // so Ear Clipping handles these both issues
+                auto convexPieces = EarClipTriangulate(smoothPoints); // Convert to convex polygons
+                for (const auto& piece : convexPieces)
+                {
                     terrains.push_back(
-                        std::make_unique<Terrain>(world, polyPoints)
+                        std::make_unique<Terrain>(world, piece)
                     );
                 }
             }

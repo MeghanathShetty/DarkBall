@@ -3,4 +3,8 @@
 #include <vector>
 
 std::vector<std::vector<sf::Vector2f>>
-ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon);
+EarClipTriangulate(const std::vector<sf::Vector2f>& polygon);
+
+std::vector<sf::Vector2f>
+GenerateCatmullRom(const std::vector<sf::Vector2f>& controlPoints,
+    int samplesPerSegment);

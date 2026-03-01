@@ -32,9 +32,7 @@ static float SignedArea(const std::vector<sf::Vector2f>& poly)
     return area * 0.5f;
 }
 
-// ------------------------------------------------------------
 // Check if point p is inside triangle (a, b, c)
-// ------------------------------------------------------------
 static bool PointInTriangle(const sf::Vector2f& p,
     const sf::Vector2f& a,
     const sf::Vector2f& b,
@@ -50,11 +48,12 @@ static bool PointInTriangle(const sf::Vector2f& p,
     return !(hasNeg && hasPos);
 }
 
-// ------------------------------------------------------------
-// Ear clipping triangulation
-// ------------------------------------------------------------
+// Ear clipping triangulation 
+// Convert polygon with high vertices to smaller triangles with 3 vertices
+// Later when these smaller triangles are merged toether,
+// they become the shape of the orignal polygon
 std::vector<std::vector<sf::Vector2f>>
-ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon)
+EarClipTriangulate(const std::vector<sf::Vector2f>& polygon)
 {
     std::vector<std::vector<sf::Vector2f>> result;
 
@@ -122,4 +121,68 @@ ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon)
     }
 
     return result;
+}
+
+std::vector<sf::Vector2f>
+// Used to generate smooth curves from control points (e.g. for terrain)
+// For each segment (P1 → P2), generate smooth intermediate
+// points between them, P1 → s1 → s2 → ... → P2
+GenerateCatmullRom(const std::vector<sf::Vector2f>& ctrl,
+    int samplesPerSeg)
+{
+    std::vector<sf::Vector2f> out;
+
+    if (ctrl.size() < 2)
+        return out;
+
+    auto CR = [](const sf::Vector2f& p0,
+        const sf::Vector2f& p1,
+        const sf::Vector2f& p2,
+        const sf::Vector2f& p3,
+        float t)
+        {
+            float t2 = t * t;
+            float t3 = t2 * t;
+
+            sf::Vector2f result;
+
+            result.x = 0.5f * (
+                (2.f * p1.x) +
+                (-p0.x + p2.x) * t +
+                (2.f * p0.x - 5.f * p1.x + 4.f * p2.x - p3.x) * t2 +
+                (-p0.x + 3.f * p1.x - 3.f * p2.x + p3.x) * t3
+                );
+
+            result.y = 0.5f * (
+                (2.f * p1.y) +
+                (-p0.y + p2.y) * t +
+                (2.f * p0.y - 5.f * p1.y + 4.f * p2.y - p3.y) * t2 +
+                (-p0.y + 3.f * p1.y - 3.f * p2.y + p3.y) * t3
+                );
+
+            return result;
+        };
+
+    std::vector<sf::Vector2f> pts = ctrl;
+
+    // duplicate endpoints for boundary
+    pts.insert(pts.begin(), pts.front());
+    pts.push_back(pts.back());
+
+    for (size_t i = 0; i + 3 < pts.size(); ++i)
+    {
+        for (int s = 0; s < samplesPerSeg; ++s)
+        {
+            float t = s / static_cast<float>(samplesPerSeg);
+
+            out.push_back(
+                CR(pts[i], pts[i + 1],
+                    pts[i + 2], pts[i + 3], t)
+            );
+        }
+    }
+
+    out.push_back(ctrl.back());
+
+    return out;
 }
