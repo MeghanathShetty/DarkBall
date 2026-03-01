@@ -102,7 +102,7 @@
                 {
                  "height":0,
                  "id":13,
-                 "name":"",
+                 "name":"e1",
                  "polygon":[
                         {
                          "x":0,
@@ -165,7 +165,7 @@
                          "y":0
                         }],
                  "rotation":0,
-                 "type":"",
+                 "type":"concave",
                  "visible":true,
                  "width":0,
                  "x":1612,
@@ -178,7 +178,7 @@
          "y":0
         }],
  "nextlayerid":3,
- "nextobjectid":25,
+ "nextobjectid":26,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

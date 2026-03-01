@@ -1,5 +1,9 @@
 #include "GeometryUtils.h"
+#include <vector>
 
+// ------------------------------------------------------------
+// Basic cross product (orientation test)
+// ------------------------------------------------------------
 static float Cross(const sf::Vector2f& a,
     const sf::Vector2f& b,
     const sf::Vector2f& c)
@@ -8,6 +12,29 @@ static float Cross(const sf::Vector2f& a,
         (b.y - a.y) * (c.x - a.x);
 }
 
+// ------------------------------------------------------------
+// Signed polygon area (used to detect winding order)
+// > 0  → Counter-clockwise
+// < 0  → Clockwise
+// ------------------------------------------------------------
+static float SignedArea(const std::vector<sf::Vector2f>& poly)
+{
+    float area = 0.f;
+
+    for (size_t i = 0; i < poly.size(); ++i)
+    {
+        const auto& a = poly[i];
+        const auto& b = poly[(i + 1) % poly.size()];
+
+        area += (a.x * b.y - b.x * a.y);
+    }
+
+    return area * 0.5f;
+}
+
+// ------------------------------------------------------------
+// Check if point p is inside triangle (a, b, c)
+// ------------------------------------------------------------
 static bool PointInTriangle(const sf::Vector2f& p,
     const sf::Vector2f& a,
     const sf::Vector2f& b,
@@ -23,6 +50,9 @@ static bool PointInTriangle(const sf::Vector2f& p,
     return !(hasNeg && hasPos);
 }
 
+// ------------------------------------------------------------
+// Ear clipping triangulation
+// ------------------------------------------------------------
 std::vector<std::vector<sf::Vector2f>>
 ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon)
 {
@@ -32,6 +62,9 @@ ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon)
         return result;
 
     std::vector<sf::Vector2f> vertices = polygon;
+
+    // Detect winding
+    bool isCCW = SignedArea(vertices) > 0.f;
 
     while (vertices.size() >= 3)
     {
@@ -45,10 +78,15 @@ ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon)
             sf::Vector2f next =
                 vertices[(i + 1) % vertices.size()];
 
-            // Check if vertex is convex (assumes clockwise winding)
-            if (Cross(prev, curr, next) >= 0)
+            float cross = Cross(prev, curr, next);
+
+            // Determine convexity based on winding
+            bool isConvex = isCCW ? (cross > 0) : (cross < 0);
+
+            if (!isConvex)
                 continue;
 
+            // Check if any other vertex lies inside the triangle
             bool containsPoint = false;
 
             for (size_t j = 0; j < vertices.size(); ++j)
@@ -68,7 +106,7 @@ ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon)
             if (containsPoint)
                 continue;
 
-            // Found an ear → create triangle
+            // Found an ear → clip it
             result.push_back({ prev, curr, next });
 
             vertices.erase(vertices.begin() + i);
@@ -77,7 +115,10 @@ ConvertConcaveToConvexPieces(const std::vector<sf::Vector2f>& polygon)
         }
 
         if (!earFound)
-            break; // safety exit
+        {
+            // Degenerate or malformed polygon safety exit
+            break;
+        }
     }
 
     return result;

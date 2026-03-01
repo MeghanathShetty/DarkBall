@@ -131,10 +131,9 @@ void Level::load(const std::string& filename, b2World& world)
                     );
                 }
 
-                if (obj["type"] == "concave") { // concave, so need conversion to convex
-
-                    // Convert to convex polygons
-                    auto convexPieces = ConvertConcaveToConvexPieces(polyPoints);
+                if (obj["type"] == "concave") // concave, so need conversion to convex
+                { 
+                    auto convexPieces = ConvertConcaveToConvexPieces(polyPoints); // Convert to convex polygons
                     for (const auto& piece : convexPieces)
                     {
                         terrains.push_back(
