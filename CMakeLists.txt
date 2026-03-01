@@ -17,7 +17,7 @@ add_executable(DarkBall
     systems/ContactListener.cpp
     systems/Level.h
     systems/Level.cpp
-)
+ "utils/GeometryUtils.h" "utils/GeometryUtils.cpp")
 
 # ---- Copy Assets ----
 file(GLOB GAME_ASSETS "assets/*")

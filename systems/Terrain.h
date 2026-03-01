@@ -15,5 +15,5 @@ public:
 private:
     b2Body* body = nullptr;
     std::vector<sf::Vector2f> pixelPoints;
-    sf::VertexArray visual;
+    sf::ConvexShape filledShape;
 };

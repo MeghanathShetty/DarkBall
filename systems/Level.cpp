@@ -1,4 +1,5 @@
 #include "Level.h"
+#include "../utils/GeometryUtils.h"
 #include <fstream>
 #include <iostream>
 #include <filesystem>
@@ -11,7 +12,7 @@ void Level::load(const std::string& filename, b2World& world)
     std::ifstream file("levels/" + filename);
     if (!file.is_open())
     {
-        std::cout << "Failed to load: " << filename << std::endl;
+        std::cout << "ERROR: Failed to load level: " << filename << std::endl;
         return;
     }
 
@@ -19,8 +20,6 @@ void Level::load(const std::string& filename, b2World& world)
     file >> data;
 
     terrains.clear();
-
-    const int samplesPerSegment = 16;
 
     auto generateCatmullRom =
         [](const std::vector<sf::Vector2f>& ctrl,
@@ -83,8 +82,11 @@ void Level::load(const std::string& filename, b2World& world)
             return out;
         };
 
+
+    // main logic
     for (const auto& layer : data["layers"])
     {
+		// ignre all layers that are not the "Collisions" object layer
         if (layer["type"] != "objectgroup" ||
             layer["name"] != "Collisions")
             continue;
@@ -94,10 +96,8 @@ void Level::load(const std::string& filename, b2World& world)
             float baseX = obj.value("x", 0.0f);
             float baseY = obj.value("y", 0.0f);
 
-            // RECTANGLE = straight box
-            if (obj.contains("width") && obj.contains("height") &&
-                !obj.contains("polygon") &&
-                !obj.contains("polyline"))
+            bool isRect = !(obj.contains("polygon"));
+			if (isRect) // RECTANGLE (just a simple box)
             {
                 float w = obj["width"];
                 float h = obj["height"];
@@ -114,37 +114,15 @@ void Level::load(const std::string& filename, b2World& world)
                     std::make_unique<Terrain>(world, rectPoints)
                 );
             }
-
-            // POLYLINE = smooth slope
-            else if (obj.contains("polyline"))
+			else // POLYGON
             {
-                std::vector<sf::Vector2f> controlPoints;
-
-                for (const auto& p : obj["polyline"])
+				if (obj["polygon"].size() < 3)
                 {
-                    controlPoints.emplace_back(
-                        baseX + p["x"].get<float>(),
-                        baseY + p["y"].get<float>()
-                    );
+                    std::cout << "WARNING: Recieved a polygon with less than 3 points, polygon ignored." << std::endl;
+                    continue;
                 }
 
-                if (controlPoints.size() >= 2)
-                {
-                    auto smooth =
-                        generateCatmullRom(controlPoints,
-                            samplesPerSegment);
-
-                    terrains.push_back(
-                        std::make_unique<Terrain>(world, smooth)
-                    );
-                }
-            }
-
-            // POLYGON = straight edges (no smoothing)
-            else if (obj.contains("polygon"))
-            {
                 std::vector<sf::Vector2f> polyPoints;
-
                 for (const auto& p : obj["polygon"])
                 {
                     polyPoints.emplace_back(
@@ -153,9 +131,22 @@ void Level::load(const std::string& filename, b2World& world)
                     );
                 }
 
-                terrains.push_back(
-                    std::make_unique<Terrain>(world, polyPoints)
-                );
+                if (obj["type"] == "concave") { // concave, so need conversion to convex
+
+                    // Convert to convex polygons
+                    auto convexPieces = ConvertConcaveToConvexPieces(polyPoints);
+                    for (const auto& piece : convexPieces)
+                    {
+                        terrains.push_back(
+                            std::make_unique<Terrain>(world, piece)
+                        );
+                    }
+                }
+				else { // else assume convex (so directly use the points to create a polygon)
+                    terrains.push_back(
+                        std::make_unique<Terrain>(world, polyPoints)
+                    );
+                }
             }
         }
     }

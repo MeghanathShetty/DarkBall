@@ -1,26 +1,20 @@
 #include "Terrain.h"
+#include <iostream>
 
 Terrain::Terrain(b2World& world,
     const std::vector<sf::Vector2f>& points)
 {
     pixelPoints = points;
 
-    // Validate input
     if (pixelPoints.size() < 2)
-    {
-        // Not enough points to build a chain; leave visual empty and return.
-        visual.clear();
-        visual.setPrimitiveType(sf::Lines);
         return;
-    }
 
-    // Create static body
     b2BodyDef bodyDef;
     body = world.CreateBody(&bodyDef);
 
-    // Convert to Box2D meters
     std::vector<b2Vec2> physicsPoints;
     physicsPoints.reserve(pixelPoints.size());
+
     for (auto& p : pixelPoints)
     {
         physicsPoints.emplace_back(
@@ -29,39 +23,36 @@ Terrain::Terrain(b2World& world,
         );
     }
 
-    b2ChainShape chain;
-    b2Vec2 prev = physicsPoints.front();
-    b2Vec2 next = physicsPoints.back();
-
-    // Slightly extend to avoid zero-length ghost edges
-    prev.x -= 0.01f;
-    next.x += 0.01f;
-
-    chain.CreateChain(physicsPoints.data(),
-        static_cast<int32>(physicsPoints.size()),
-        prev,
-        next);
-
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &chain;
-    fixtureDef.friction = 0.8f;
-    fixtureDef.restitution = 0.1f;
-    fixtureDef.userData.pointer = 0;
-
-    body->CreateFixture(&fixtureDef);
-
-    // Build visual
-    visual.setPrimitiveType(sf::LineStrip);
-    visual.resize(pixelPoints.size());
-
-    for (size_t i = 0; i < pixelPoints.size(); i++)
+	if (pixelPoints.size() >= 3) // minimum 3 points for polygon (a closed shape)
     {
-        visual[i].position = pixelPoints[i];
-        visual[i].color = sf::Color::Black;
+        // ---- Use Box2D Polygon ----
+        // All are convex here, because concave polygons are
+        // triangulated into convex ones in Level::load()
+		b2PolygonShape polygon;
+        polygon.Set(physicsPoints.data(),
+            static_cast<int32>(physicsPoints.size()));
+
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = &polygon;
+        fixtureDef.friction = 0.8f;
+        fixtureDef.restitution = 0.1f;
+
+        body->CreateFixture(&fixtureDef);
+
+        // ---- Build Filled Visual ---- 
+        filledShape.setPointCount(pixelPoints.size());
+        for (size_t i = 0; i < pixelPoints.size(); ++i)
+            filledShape.setPoint(i, pixelPoints[i]);
+
+        filledShape.setFillColor(sf::Color::Black);
+    }
+    else {
+		std::cout << "WARNING: Recieved an"
+            "terrain with less than 3 points, terrain ignored." << std::endl;
     }
 }
 
 void Terrain::draw(sf::RenderWindow& window)
 {
-    window.draw(visual);
+    window.draw(filledShape);
 }
